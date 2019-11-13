@@ -1,25 +1,29 @@
 import React, { Component } from "react";
 
 export default class Navbar extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
+  onclickLogout = () => {
+    this.props.onLogin(this.props.dataFromParent.username);
+  };
 
   render() {
-    if (this.props.dataFromParent.authenticated) {
-      return (
-        <div className="navbar">
+    return (
+      <div className="navbar">
+        <div className="userInfo">
           <h3>Hi there {this.props.dataFromParent.username}</h3>
-          <p>Net worth: {this.props.dataFromParent.stockValue}€</p>
         </div>
-      );
-    } else {
-      return (
-        <div className="navbar">
-          <h3>Please login</h3>
+        <div className="tools">
+          <button
+            type="submit"
+            onClick={event => {
+              event.preventDefault();
+              this.onclickLogout();
+            }}
+            className="navbar-button"
+          >
+            Log out
+          </button>
         </div>
-      );
-    }
+      </div>
+    );
   }
 }

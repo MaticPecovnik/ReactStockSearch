@@ -1,30 +1,41 @@
 import React, { Component } from "react";
+import axios from "axios";
 
 export default class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      userId: null,
       username: "",
       password: "",
       wrongPass: false
     };
   }
+
   handleClick = () => {
-    const database = { maticpeco: "1234" };
-    const username = this.state.username;
-    /* Test if it is the same as in the database. */
-    if (
-      database[username] === undefined ||
-      database[username] !== this.state.password
-    ) {
-      this.setState({
-        username: "",
-        password: "",
-        wrongPass: true
+    // validating user credentials using our custom API to access a users mongoose collection
+    // on MongoDB Atlas. If input matches the registered data in the database then the
+    // user is authenticated
+    axios
+      .get("http://localhost:3000/api/user/getData", {
+        params: {
+          username: this.state.username,
+          password: this.state.password
+        }
+      })
+      .then(res => {
+        const database = res.data.data;
+
+        if (database.length === 1) {
+          this.props.onLogin(database[0]._id, database[0].username);
+        } else {
+          this.setState({
+            username: "",
+            password: "",
+            wrongPass: true
+          });
+        }
       });
-    } else {
-      this.props.onLogin(username);
-    }
   };
 
   handleChange = event => {
@@ -34,6 +45,7 @@ export default class Login extends Component {
   };
   render() {
     if (this.state.wrongPass) {
+      // returns JSX based on the correctness of the credentials
       return (
         <div className="login-container container-fluid">
           <div className="row">

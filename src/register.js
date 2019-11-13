@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import axios from "axios";
 
-export default class Login extends Component {
+export default class Register extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -10,77 +10,87 @@ export default class Login extends Component {
       repeat: "",
       email: "",
       formCorrect: true,
-      errorMessage: "",
-      db: {
-        username: null,
-        email: null
-      }
+      errorMessage: ""
     };
   }
 
-  // our first get method that uses our backend api to
-  // fetch data from our data base
-
-  /*
-  getDataFromDb = () => {
-    fetch("http://localhost:3000/api/getData")
-      .then(data => data.json())
-      .then(res => this.setState({ db: { username: res.username, email: res.email } }));
-  };
-  */
-
-  // our put method that uses our backend api
-  // to create new query into our data base
-
-  componentDidMount() {
-    this.getDataFromDb();
-  }
-
-  getDataFromDb = () => {
-    fetch("http://localhost:3000/api/getData")
-      .then(data => data.json())
-      .then(res => console.log(res));
-  };
-
   putDataToDB = (state_username, state_password, state_email) => {
-    axios.post("http://localhost:3000/api/putData", {
-      username: state_username,
-      password: state_password,
-      email: state_email
-    });
+    // when a user registers the data is stored in the MongoDB Atlas mongoose database.
+    // this is done via our custom API
+    fetch("http://localhost:3000/api/user/getData")
+      .then(data => data.json())
+      .then(res => {
+        // Provides the id of the last registered user
+        const id = res.data.length;
+        axios.post("http://localhost:3000/api/user/putData", {
+          _id: id,
+          username: state_username,
+          password: state_password,
+          email: state_email
+        });
+        axios.post("http://localhost:3000/api/action/putData", {
+          _id: id
+        });
+      });
   };
 
-  handleClick = () => {
+  handleRegisterClick = () => {
     const mailRegex = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
-    if (this.state.password !== this.state.repeat) {
-      // Check if passwords match
-      this.setState({
-        formCorrect: false,
-        errorMessage: "Passwords do not match"
-      });
-    } else if (false) {
-      // if user already exists
+    //checks that the users credentials are not already in the database
+    fetch("http://localhost:3000/api/user/getData")
+      .then(data => data.json())
+      .then(res => {
+        const database = res.data;
+        const cond = user => {
+          return (
+            user.username === this.state.username ||
+            user.email === this.state.email
+          );
+        };
+        const currentUser = database.filter(cond);
 
-      this.setState({
-        formCorrect: false,
-        errorMessage: "User already exists"
+        // Check if user already exists
+
+        if (currentUser.length !== 0) {
+          this.setState({
+            username: "",
+            password: "",
+            repeat: "",
+            email: "",
+            formCorrect: false,
+            errorMessage: "User/email already exists"
+          });
+        } else if (this.state.password !== this.state.repeat) {
+          // Check if passwords match
+          this.setState({
+            username: "",
+            password: "",
+            repeat: "",
+            email: "",
+            formCorrect: false,
+            errorMessage: "Passwords do not match"
+          });
+        } else if (!mailRegex.test(this.state.email)) {
+          // Check if mail is valid
+          this.setState({
+            username: "",
+            password: "",
+            repeat: "",
+            email: "",
+            formCorrect: false,
+            errorMessage: "Incorrect mail"
+          });
+        } else {
+          /* Send to database and switch to login screen */
+          this.putDataToDB(
+            this.state.username,
+            this.state.password,
+            this.state.email
+          );
+          this.props.registerToLogin();
+        }
       });
-    } else if (!mailRegex.test(this.state.email)) {
-      // Check if mail is valid
-      this.setState({
-        formCorrect: false,
-        errorMessage: "Incorrect mail"
-      });
-    } else {
-      /* Send to database and switch to login screen */
-      this.putDataToDB(
-        this.state.username,
-        this.state.password,
-        this.state.email
-      );
-      this.props.registerToLogin();
-    }
   };
 
   handleChange = event => {
@@ -88,6 +98,7 @@ export default class Login extends Component {
       [event.target.name]: event.target.value
     });
   };
+
   render() {
     if (this.state.formCorrect) {
       return (
@@ -164,7 +175,7 @@ export default class Login extends Component {
                       type="submit"
                       onClick={event => {
                         event.preventDefault();
-                        this.handleClick();
+                        this.handleRegisterClick();
                       }}
                       className="login-submit"
                     >
@@ -253,7 +264,7 @@ export default class Login extends Component {
                       type="submit"
                       onClick={event => {
                         event.preventDefault();
-                        this.handleClick();
+                        this.handleRegisterClick();
                       }}
                       className="login-submit"
                     >

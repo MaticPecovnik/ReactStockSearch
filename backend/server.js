@@ -3,7 +3,8 @@ const express = require("express");
 var cors = require("cors");
 const bodyParser = require("body-parser");
 const logger = require("morgan");
-const Data = require("./data");
+const User = require("./user");
+const Action = require("./action");
 
 const API_PORT = 3000;
 const app = express();
@@ -12,10 +13,14 @@ const router = express.Router();
 
 // this is our MongoDB database
 const dbRoute =
-  "mongodb+srv://maticpeco:Mp.1503207@financetracker-a9spt.mongodb.net/test?retryWrites=true&w=majority";
+  "mongodb+srv://maticpeco:Mp.1503207@financetracker-a9spt.mongodb.net/financeApp?retryWrites=true&w=majority";
 
 // connects our back end code with the database
-mongoose.connect(dbRoute, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(dbRoute, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false
+});
 
 let db = mongoose.connection;
 
@@ -30,54 +35,89 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(logger("dev"));
 
-// this is our get method
-// this method fetches all available data in our database
-router.get("/getData", (req, res) => {
-  Data.find((err, data) => {
+// we define the API for interacting with the userInfo database
+
+// GET request that returns the entire userInfo database or returns a queried user
+
+router.get("/user/getData", (req, res) => {
+  if (req.query.length === 0) {
+    User.find((err, data) => {
+      if (err) return res.json({ success: false, error: err });
+      return res.json({ success: true, data: data });
+    });
+  } else {
+    query = req.query;
+    console.log(query);
+    User.find(req.query, (err, data) => {
+      if (err) return res.json({ success: false, error: err });
+      return res.json({ success: true, data: data });
+    });
+  }
+});
+
+// POST request that registers a new user
+
+router.post("/user/putData", (req, res) => {
+  let user = new User();
+
+  const { _id, username, password, email } = req.body;
+  console.log(req.body);
+
+  user._id = _id;
+  user.username = username;
+  user.password = password;
+  user.email = email;
+  user.save(err => {
     if (err) return res.json({ success: false, error: err });
+    return res.json({ success: true });
+  });
+});
+
+// we define the API for interacting with the stockAction database
+
+// GET request that returns the entire stockAction database
+
+router.get("/action/getData", (req, res) => {
+  Action.find((err, data) => {
+    if (err) return res.json({ success: false, error: err });
+    console.log(data);
     return res.json({ success: true, data: data });
   });
 });
 
-// this is our update method
-// this method overwrites existing data in our database
-router.post("/updateData", (req, res) => {
-  const { id, update } = req.body;
-  Data.findByIdAndUpdate(id, update, err => {
+// POST request that registers a action
+
+router.post("/action/putData", (req, res) => {
+  const ID = req.body._id;
+
+  // After a new user registers a transaction list is created for them
+  // basically a portfolio
+
+  let act = new Action({
+    _id: ID,
+    userId: ID,
+    actions: [[]]
+  });
+  console.log(act);
+  act.save(err => {
     if (err) return res.json({ success: false, error: err });
     return res.json({ success: true });
   });
 });
 
-// this is our delete method
-// this method removes existing data in our database
-router.delete("/deleteData", (req, res) => {
-  const { id } = req.body;
-  Data.findByIdAndRemove(id, err => {
-    if (err) return res.send(err);
-    return res.json({ success: true });
-  });
-});
+// UPDATE request tbat updates the actions
 
-// this is our create methid
-// this method adds new data in our database
-router.post("/putData", (req, res) => {
-  let data = new Data();
+router.put("/action/upData", (req, res) => {
+  const { _id, stockSHT, type, price, units } = req.body;
+  const date = new Date();
+  let action = [stockSHT, type, price, units, date];
+  let update = { $addToSet: { actions: action } };
 
-  const { id, message } = req.body;
+  // find a actions list based on userID and update it by appending a new transaction
 
-  if ((!id && id !== 0) || !message) {
-    return res.json({
-      success: false,
-      error: "INVALID INPUTS"
-    });
-  }
-  data.message = message;
-  data.id = id;
-  data.save(err => {
-    if (err) return res.json({ success: false, error: err });
-    return res.json({ success: true });
-  });
+  Action.findOneAndUpdate({ userId: _id }, update).then(res =>
+    console.log(res)
+  );
 });
 
 // append /api for our http requests

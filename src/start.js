@@ -6,8 +6,8 @@ export default class Start extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loginview: false,
-      registerview: true
+      loginview: true,
+      registerview: false
     };
   }
   loginToRegister = () => {
@@ -25,6 +25,7 @@ export default class Start extends Component {
   };
 
   render() {
+    //switch between the login/register view based on the users choice
     if (this.state.loginview && !this.state.registerview) {
       return (
         <Login

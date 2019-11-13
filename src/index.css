@@ -1,5 +1,11 @@
 /* Overall CSS elements */
 
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
 html {
   font-family: "Domine", serif;
   background-image: url(https://i.imgur.com/oM77Daq.jpg);
@@ -80,12 +86,99 @@ html {
 
 .navbar {
   position: fixed;
-  float: top;
   background-color: hsl(287, 100%, 21%);
   color: white;
-  padding: 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
-#main {
+.userInfo {
+  width: 80%;
+}
+
+.navbar-button {
+  background-color: hsl(287, 100%, 21%);
+  color: white;
+  font-size: 16px;
+  border: none;
+  padding: 10px;
+  transition: all 0.2s;
+}
+
+.navbar-button:hover {
+  background-color: hsl(287, 100%, 30%);
+  border: 1px solid white;
+}
+
+/* Main component elements */
+
+.main-container {
+  background-image: url(https://i.imgur.com/oM77Daq.jpg);
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+.search-container {
+  padding: 3%;
+  white-space: nowrap;
+}
+
+.searchContainer {
   background-color: white;
+  opacity: 0.97;
+  border: 5px solid hsl(287, 100%, 21%);
+}
+
+.inline {
+  width: 100%;
+}
+
+label {
+  font-size: 16px;
+  margin-right: 1%;
+}
+
+.search-input {
+  width: 50%;
+}
+
+.search-submit {
+  margin-left: 1%;
+}
+
+.suggestion {
+  display: flex;
+  justify-content: space-between;
+  padding: 1%;
+}
+
+.suggestion-container {
+  margin: 1%;
+  padding: 2%;
+  width: 65%;
+  opacity: 0.7;
+  font-weight: bold;
+  border: 1.5px solid hsl(287, 100%, 21%);
+  border-radius: 10px;
+  background-color: rgba(241, 237, 237, 0.986);
+  box-sizing: border-box;
+}
+
+.suggestion-button {
+  background-color: rgba(241, 237, 237, 0.986);
+  border: none;
+}
+
+.suggestion-button:hover {
+  color: hsl(287, 100%, 21%);
+  font-weight: bolder;
+}
+
+.stockgraph {
+  width: 100%;
+}
+
+.buysell-form {
+  width: 100%;
 }
